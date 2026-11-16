@@ -1,7 +1,8 @@
 {
-  "rotation_index": 1,
+  "rotation_index": 2,
   "published_skills": [
-    "distributed-lock-redis"
+    "distributed-lock-redis",
+    "memory-heap-profiler"
   ],
-  "last_run": "2026-11-14 14:49:38"
+  "last_run": "2026-11-16 08:27:06"
 }
