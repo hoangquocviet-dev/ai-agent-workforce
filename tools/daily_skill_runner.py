@@ -26,6 +26,7 @@ ENV_PATH = Path(r"C:\gehihi\env\.env")
 STATE_FILE = REPO_DIR / "tools" / "generator_state.json"
 
 sys.path.append(r"C:\gehihi\tools")
+from error_alert import report_failure, install_crash_hook
 try:
     from rate_pacer import can_perform_action, record_action, apply_human_jitter
 except ImportError:
@@ -251,6 +252,7 @@ def commit_and_push_skill(agent, topic_slug):
         return True
     else:
         print(f"❌ Push failed: {p.stderr}")
+        report_failure("Daily Agent Skill", f"Push skill '{topic_slug}' lên GitHub thất bại: {(p.stderr or '').strip()[-500:]}")
         return False
 
 def run_daily_cycle():
@@ -269,4 +271,5 @@ def run_daily_cycle():
         print("🎉 Daily cycle completed successfully!")
 
 if __name__ == "__main__":
+    install_crash_hook("Daily Agent Skill")
     run_daily_cycle()
