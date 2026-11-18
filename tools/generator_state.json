@@ -1,10 +1,11 @@
 {
-  "rotation_index": 4,
+  "rotation_index": 5,
   "published_skills": [
     "distributed-lock-redis",
     "memory-heap-profiler",
     "cyclomatic-complexity-reducer",
-    "dockerfile-multistage-minifier"
+    "dockerfile-multistage-minifier",
+    "openapi-contract-property-tester"
   ],
-  "last_run": "2026-11-17 20:15:13"
+  "last_run": "2026-11-18 20:15:24"
 }
