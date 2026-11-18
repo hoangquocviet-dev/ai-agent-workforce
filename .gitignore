@@ -6,3 +6,16 @@ node_modules/
 *.bak*
 _archive/
 *.log
+*.py[cod]
+.venv/
+venv/
+.vscode/
+.idea/
+.pytest_cache/
+.env.*
+*.tmp*
+*.lock
+logs/
+downloads/
+fb-profile/
+ACCOUNT_LOCKED.flag

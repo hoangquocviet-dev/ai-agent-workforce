@@ -117,18 +117,63 @@ def _sanitize_slug(raw_slug: str, agent_id: str, count: int) -> str:
     return s[:48].strip("-")
 
 
+_BLOCKED_AST_MODULES = {
+    "subprocess", "socket", "urllib", "http", "requests", "httpx", "aiohttp",
+    "ctypes", "winreg", "ftplib", "smtplib", "telnetlib", "pty", "webbrowser",
+    "multiprocessing", "shutil", "importlib", "builtins",
+}
+_BLOCKED_AST_CALLS = {"eval", "exec", "compile", "__import__", "open"}
+_BLOCKED_AST_ATTRS = {"system", "popen", "spawnl", "spawnv", "remove", "unlink", "rmdir", "rmtree", "replace", "rename", "write_text", "write_bytes"}
+
+
+def _ast_audit_workflow(py_code: str) -> tuple[bool, str]:
+    """Quét cây cú pháp AST để đảm bảo script AI chỉ chạy logic thuần bộ nhớ (không mạng, không đọc/xoá file hệ thống)."""
+    import ast
+    try:
+        tree = ast.parse(py_code)
+    except SyntaxError as se:
+        return False, f"SyntaxError: {se}"
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                root_mod = alias.name.split(".")[0]
+                if root_mod in _BLOCKED_AST_MODULES:
+                    return False, f"Blocked module import: {root_mod}"
+        elif isinstance(node, ast.ImportFrom):
+            root_mod = (node.module or "").split(".")[0]
+            if root_mod in _BLOCKED_AST_MODULES:
+                return False, f"Blocked from-import: {root_mod}"
+        elif isinstance(node, ast.Call):
+            if isinstance(node.func, ast.Name) and node.func.id in _BLOCKED_AST_CALLS:
+                return False, f"Blocked builtin call: {node.func.id}()"
+            if isinstance(node.func, ast.Attribute) and node.func.attr in _BLOCKED_AST_ATTRS:
+                return False, f"Blocked attribute call: .{node.func.attr}()"
+    return True, "OK"
+
+
 def _verify_workflow_script(py_code: str) -> tuple[bool, str]:
-    """Chạy thử workflow.py trong file tạm để đảm bảo code thật, không lỗi cú pháp, pass toàn bộ assert."""
+    """Quét an toàn AST rồi chạy thử workflow.py trong môi trường cô lập (không truyền biến môi trường chứa khoá)."""
     import tempfile
-    sub_env = os.environ.copy()
-    sub_env["PYTHONIOENCODING"] = "utf-8"
-    sub_env["PYTHONUTF8"] = "1"
-    with tempfile.TemporaryDirectory() as tmp:
+    ok_ast, ast_reason = _ast_audit_workflow(py_code)
+    if not ok_ast:
+        return False, f"AST Security Gate rejected script: {ast_reason}"
+
+    sub_env = {
+        "SYSTEMROOT": os.environ.get("SYSTEMROOT", r"C:\Windows"),
+        "PATH": os.environ.get("PATH", ""),
+        "TEMP": os.environ.get("TEMP", ""),
+        "TMP": os.environ.get("TMP", ""),
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONUTF8": "1",
+    }
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
         script_path = Path(tmp) / "workflow.py"
         script_path.write_text(py_code, encoding="utf-8")
         try:
             res = subprocess.run(
-                [sys.executable, str(script_path)],
+                [sys.executable, "-I", str(script_path)],
+                cwd=tmp,
                 env=sub_env,
                 capture_output=True,
                 text=True,
@@ -243,10 +288,23 @@ def write_skill_package(agent: dict, pkg: dict) -> Path:
 
 
 def commit_and_push_skill(agent: dict, topic_slug: str, skill_dir: Path) -> bool:
+    import base64
     apply_human_jitter(min_seconds=5, max_seconds=15, label="SkillPublisher")
     commit_msg = f"feat({agent['id']}): add {topic_slug} autonomous workflow skill"
     git_env = os.environ.copy()
     git_env["GIT_TERMINAL_PROMPT"] = "0"
+    try:
+        for line in Path(r"C:\gehihi\env\.env").read_text(encoding="utf-8").splitlines():
+            if line.strip().startswith("GITHUB_TOKEN="):
+                gh_tok = line.strip().split("=", 1)[1].strip()
+                if gh_tok:
+                    b64 = base64.b64encode(f"hoangquocviet-dev:{gh_tok}".encode("utf-8")).decode("ascii")
+                    git_env["GIT_CONFIG_COUNT"] = "1"
+                    git_env["GIT_CONFIG_KEY_0"] = "http.https://github.com/.extraheader"
+                    git_env["GIT_CONFIG_VALUE_0"] = f"AUTHORIZATION: basic {b64}"
+                break
+    except Exception:
+        pass
     cflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
     # Đồng bộ nhánh main từ remote trước để tránh lỗi diverged branch
@@ -342,6 +400,19 @@ def run_daily_cycle(dry_run: bool = False):
     if success:
         print("🎉 Daily cycle completed successfully!")
     else:
+        import shutil as _shutil
+        try:
+            subprocess.run(
+                ["git", "reset", "--hard", "origin/main"],
+                cwd=str(REPO_DIR),
+                capture_output=True,
+                timeout=15,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+            if skill_dir.exists():
+                _shutil.rmtree(skill_dir, ignore_errors=True)
+        except Exception:
+            pass
         save_state(prev_state_backup)
 
 
