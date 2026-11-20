@@ -1,12 +1,13 @@
 {
-  "rotation_index": 6,
+  "rotation_index": 1,
   "published_skills": [
     "distributed-lock-redis",
     "memory-heap-profiler",
     "cyclomatic-complexity-reducer",
     "dockerfile-multistage-minifier",
     "openapi-contract-property-tester",
-    "jwt-policy-cors-auditor"
+    "jwt-policy-cors-auditor",
+    "outbox-saga-consistency-validator"
   ],
-  "last_run": "2026-11-19 20:15:20"
+  "last_run": "2026-11-20 20:15:06"
 }
