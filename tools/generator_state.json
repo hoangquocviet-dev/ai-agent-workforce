@@ -1,5 +1,5 @@
 {
-  "rotation_index": 4,
+  "rotation_index": 5,
   "published_skills": [
     "distributed-lock-redis",
     "memory-heap-profiler",
@@ -10,7 +10,8 @@
     "outbox-saga-consistency-validator",
     "async-deadlock-detector",
     "solid-dependency-inversion-auditor",
-    "kubernetes-slo-error-budget-auditor"
+    "kubernetes-slo-error-budget-auditor",
+    "json-schema-backward-compatibility-auditor"
   ],
-  "last_run": "2026-11-23 20:15:06"
+  "last_run": "2026-11-24 20:16:21"
 }
