@@ -1,5 +1,5 @@
 {
-  "rotation_index": 5,
+  "rotation_index": 6,
   "published_skills": [
     "distributed-lock-redis",
     "memory-heap-profiler",
@@ -11,7 +11,8 @@
     "async-deadlock-detector",
     "solid-dependency-inversion-auditor",
     "kubernetes-slo-error-budget-auditor",
-    "json-schema-backward-compatibility-auditor"
+    "json-schema-backward-compatibility-auditor",
+    "ssrf-path-traversal-sanitizer"
   ],
-  "last_run": "2026-11-24 20:16:21"
+  "last_run": "2026-11-25 20:15:09"
 }
