@@ -1,5 +1,5 @@
 {
-  "rotation_index": 6,
+  "rotation_index": 1,
   "published_skills": [
     "distributed-lock-redis",
     "memory-heap-profiler",
@@ -12,7 +12,8 @@
     "solid-dependency-inversion-auditor",
     "kubernetes-slo-error-budget-auditor",
     "json-schema-backward-compatibility-auditor",
-    "ssrf-path-traversal-sanitizer"
+    "ssrf-path-traversal-sanitizer",
+    "database-b-tree-index-cardinality-auditor"
   ],
-  "last_run": "2026-11-25 20:15:09"
+  "last_run": "2026-11-27 20:15:08"
 }
